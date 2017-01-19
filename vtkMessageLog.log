@@ -1,0 +1,8 @@
+Generic Warning: In ..\..\..\Common\DataModel\vtkPolyLine.cxx, line 106
+Coincident points in polyline...can't compute normals
+
+
+Warning: In ..\..\..\Filters\Core\vtkTubeFilter.cxx, line 243
+vtkTubeFilter (000000000DC412F0): Could not generate normals for line. Skipping to next.
+
+
