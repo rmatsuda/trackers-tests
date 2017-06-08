@@ -22,6 +22,9 @@ class nav(threading.Thread):
 
     def run(self):
         inch2mm = 25.4
+        x = 10.0
+        y = 10.0
+        z = -10.0
         while self.nav:
             if self.tck == "plh":
                 plh = self.tracker_init
@@ -32,17 +35,20 @@ class nav(threading.Thread):
                 coord = (float(coord[0]) * inch2mm, float(coord[1]) * inch2mm,
                          float(coord[2]) * (-inch2mm), float(coord[3]),
                          float(coord[4]), float(coord[5]))
-                print coord
                 wx.CallAfter(Publisher.sendMessage, 'Update Orientation', coord)
             elif self.tck == "mtc":
                 mtc = self.tracker_init
                 mtc.Run()
                 coord = (mtc.PositionTooltipX1, mtc.PositionTooltipY1, mtc.PositionTooltipZ1,
-                                  mtc.AngleX1, mtc.AngleY1, mtc.AngleZ1, mtc.TooltipProjectionX, mtc.TooltipProjectionY, mtc.TooltipProjectionZ)
-                coord = (float(coord[0]), float(coord[1]),
-                         float(coord[2]), float(coord[3]),
+                                  mtc.AngleX1, mtc.AngleY1, mtc.AngleZ1,
+                         mtc.ProjectionCenterX / 10, mtc.ProjectionCenterY / 10, mtc.ProjectionCenterZ / 10,
+                         mtc.ProjectionCableX / 10, mtc.ProjectionCableY / 10, mtc.ProjectionCableZ / 10)
+                print mtc.PositionTooltipX1
+                coord = (float(coord[0])*x, float(coord[1])*y,
+                         float(coord[2])*z, float(coord[3]),
                          float(coord[4]), float(coord[5]),
-                         float(coord[6]), float(coord[7]), float(coord[8]))
+                         float(coord[6])*x, float(coord[7])*y, float(coord[8])*z,
+                     float(coord[9])*x, float(coord[10])*y, float(coord[11])*z)
 
                 print coord
                 wx.CallAfter(Publisher.sendMessage, 'Update Orientation', coord)

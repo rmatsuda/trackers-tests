@@ -169,28 +169,25 @@ class MyFrame(wx.Frame):
         lineMapper = vtk.vtkPolyDataMapper()
         lineMapper.SetInputConnection(self.lineSource.GetOutputPort())
         self.lineActor = vtk.vtkActor()
-        self.lineActor.GetProperty().SetColor(0, 0, 0.1)
+        self.lineActor.GetProperty().SetColor(1, 1, 1)
+        self.lineActor.GetProperty().SetLineWidth(5)
         self.lineActor.SetMapper(lineMapper)
-        self.lineActor.SetScale(10.0, 10.0, 10.0)
+        #self.lineActor.SetScale(10.0, 10.0, 10.0)
 
-        # Create a tube around the line
-        tubeFilter = vtk.vtkTubeFilter()
-        tubeFilter.SetInputConnection(self.lineSource.GetOutputPort())
-        tubeFilter.SetRadius(0.2)  # Default is 0.5
-        tubeFilter.SetNumberOfSides(50)
-        tubeFilter.Update()
+        # create cube
+        cube = vtk.vtkCubeSource()
+        cube.SetXLength(1.0)
+        cube.SetYLength(8.0)
+        cube.SetZLength(1.0)
 
-        # Create a mapper
-        tubeMapper = vtk.vtkPolyDataMapper()
-        tubeMapper.SetInputConnection(tubeFilter.GetOutputPort())
+        # mapper
+        cubeMapper = vtk.vtkPolyDataMapper()
+        cubeMapper.SetInputConnection(cube.GetOutputPort())
+        self.cube = vtk.vtkActor()
+        self.cube.SetMapper(cubeMapper)
 
-        # Create an actor
-        self.tubeActor = vtk.vtkActor()
-        self.tubeActor.SetMapper(tubeMapper)
-        self.tubeActor.SetScale(10.0, 10.0, 10.0)
-
-        self.ren.AddActor(self.tubeActor)
         self.ren.AddActor(self.lineActor)
+        self.ren.AddActor(self.cube)
 
         self.ren.ResetCamera()
 
@@ -209,7 +206,6 @@ class MyFrame(wx.Frame):
             self.ren.RemoveActor(self.arrow)
         elif self.OBJ_ID == 1:
             self.ren.RemoveActor(self.lineActor)
-            self.ren.RemoveActor(self.tubeActor)
         self.widget.Render()
         self.obj.Enable(True)
         self.menuTrackers.Enable(False)
@@ -251,8 +247,10 @@ class MyFrame(wx.Frame):
             self.ball_reference.SetOrientation(float(coord[3]), float(coord[4]), float(coord[5]))
             self.ball_referenceP.SetCenter(float(coord[6]) / 10, float(coord[7]) / 10, float(coord[8]) / 10)
         elif self.OBJ_ID == 1:
-            self.lineSource.SetPoint1(float(coord[0]), float(coord[1]), float(coord[2]))
-            self.lineSource.SetPoint2(float(coord[6]) / 10, float(coord[7]) / 10, float(coord[8]) / 10)
+            self.lineSource.SetPoint1(float(coord[9]), float(coord[10]), float(coord[11]))
+            self.lineSource.SetPoint2(float(coord[6]), float(coord[7]), float(coord[8]))
+            self.cube.SetPosition(((float(coord[6]))+float(coord[9]))/2,((float(coord[7]))+float(coord[10]))/2,((float(coord[8]))+float(coord[11]))/2)
+            print ((((float(coord[6]))+float(coord[9]))/2),(((float(coord[7]))+float(coord[10]))/2),(((float(coord[11]))+float(coord[8]))/2))
         self.widget.Render()
         self.ren.ResetCamera()
 
