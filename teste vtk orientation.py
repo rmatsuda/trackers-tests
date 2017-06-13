@@ -245,7 +245,7 @@ class MyFrame(wx.Frame):
         if self.OBJ_ID == 0:
             self.ball_reference.SetPosition(float(coord[0]), float(coord[1]), float(coord[2]))
             self.ball_reference.SetOrientation(float(coord[3]), float(coord[4]), float(coord[5]))
-            self.ball_referenceP.SetCenter(float(coord[6]) / 10, float(coord[7]) / 10, float(coord[8]) / 10)
+            self.ball_referenceP.SetCenter(float(coord[0]), float(coord[1]), float(coord[2]))
         elif self.OBJ_ID == 1:
             self.lineSource.SetPoint1(float(coord[9]), float(coord[10]), float(coord[11]))
             self.lineSource.SetPoint2(float(coord[6]), float(coord[7]), float(coord[8]))
