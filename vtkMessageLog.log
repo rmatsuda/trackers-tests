@@ -1,4 +1,4 @@
-Warning: In C:\Sources\VTK-6.3.0\VTK-6.3.0\Rendering\Core\vtkRenderWindow.cxx, line 276
-vtkWin32OpenGLRenderWindow (0000000006A19780): Adjusting stereo mode on a window that does not support stereo type CrystalEyes is not possible.
+ERROR: In C:\Sources\VTK-6.3.0\VTK-6.3.0\Filters\General\vtkTransformPolyDataFilter.cxx, line 73
+vtkTransformPolyDataFilter (000000000EE72C50): No transform defined!
 
 

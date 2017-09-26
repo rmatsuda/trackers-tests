@@ -33,7 +33,7 @@ class MyFrame(wx.Frame):
         self.arrowOBJ = imp0.Append(wx.ID_ANY, 'Arrow')
         self.tube = imp0.Append(wx.ID_ANY, 'Tube')
         self.coil = imp0.Append(wx.ID_ANY, 'Coil')
-        #self.brain = imp0.Append(wx.ID_ANY, 'Brain')
+        self.brain = imp0.Append(wx.ID_ANY, 'Brain')
         self.obj = menuF.AppendMenu(wx.ID_ANY, 'Create an OBJ', imp0)
 
         self.delOBJ = menuF.Append(wx.ID_ANY, 'Delete OBJ')
@@ -79,7 +79,7 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onarrow, self.arrowOBJ)
         self.Bind(wx.EVT_MENU, self.ontube, self.tube)
         self.Bind(wx.EVT_MENU, self.oncoil, self.coil)
-        #self.Bind(wx.EVT_MENU, self.onbrain, self.brain)
+        self.Bind(wx.EVT_MENU, self.onbrain, self.brain)
         self.Bind(wx.EVT_MENU, self.ondelOBJ, self.delOBJ)
         self.Bind(wx.EVT_MENU, self.onplh, self.plh)
         self.Bind(wx.EVT_MENU, self.onmtc, self.mtc)
@@ -286,6 +286,159 @@ class MyFrame(wx.Frame):
         self.delOBJ.Enable(True)
 
         self.OBJ_ID = 2
+
+    def onbrain(self, evt):
+        filename = "c101_MRI_clean_2.obj"
+
+        reader = vtk.vtkOBJReader()
+        reader.SetFileName(filename)
+
+        mapper = vtk.vtkPolyDataMapper()
+        mapper.SetInputConnection(reader.GetOutputPort())
+        self.brainactor = vtk.vtkActor()
+        self.brainactor.SetMapper(mapper)
+        self.ren.AddActor(self.brainactor)
+        target = [151.4, -113, 176.8]
+        sphere = c.sphere(target, 5, [1,0,0])
+        self.ren.AddActor(sphere)
+
+        # ------------------------------- Create plane
+
+        # calculating a plane
+        x0 = target
+        scale = vtk.vtkTransform()
+        scale.Scale(1, 1, 1)
+        filter = vtk.vtkTransformPolyDataFilter()
+        filter.SetInputConnection(reader.GetOutputPort())
+        filter.SetTransform(scale)
+        filter.Update()
+
+        surface = filter.GetOutput()
+
+        pTarget = self.CenterOfMass(surface)
+
+        v3 = np.array(pTarget) - x0  # normal to the plane
+        v3 = v3 / np.linalg.norm(v3)  # unit vector
+
+        print "np.array(pTarget): ", np.array(pTarget)
+
+        d = np.dot(v3, x0)
+
+        # prevents division by zero.
+        if v3[0] == 0.0:
+            v3[0] = 1e-09
+
+        x1 = np.array([(d - v3[1] - v3[2]) / v3[0], 1, 1])
+        v2 = x1 - x0
+        v2 = v2 / np.linalg.norm(v2)  # unit vector
+
+        v1 = np.cross(v3, v2)
+
+        v1 = v1 / np.linalg.norm(v1)  # unit vector
+
+        x2 = x0 + v1
+
+        # calculates the matrix for the change of coordinate systems (from canonical to the plane's).
+        # remember that, in np.dot(M,p), even though p is a line vector (e.g.,np.array([1,2,3])), it is treated as a column for the dot multiplication.
+        M_plane_inv = np.array([[v1[0], v2[0], v3[0], x0[0]],
+                                [v1[1], v2[1], v3[1], x0[1]],
+                                [v1[2], v2[2], v3[2], x0[2]],
+                                [0, 0, 0, 1]])
+        print M_plane_inv
+
+        M_plane_base = np.linalg.inv(M_plane_inv)
+        print M_plane_base
+
+        mat4x4 = vtk.vtkMatrix4x4()
+        for i in range(4):
+            mat4x4.SetElement(i, 0, M_plane_inv[i][0])
+            mat4x4.SetElement(i, 1, M_plane_inv[i][1])
+            mat4x4.SetElement(i, 2, M_plane_inv[i][2])
+            mat4x4.SetElement(i, 3, M_plane_inv[i][3])
+
+        print mat4x4
+        # plane for visualization.
+        plane = vtk.vtkPlaneSource()
+        plane.SetCenter(x0)
+        plane.SetNormal(v3)
+        #plane.SetPoint1(x1)
+       # plane.SetPoint2(x2)
+        plane.Update()
+        # # plane
+        # transform = vtk.vtkTransform()
+        # transform.Scale(100,100,100)
+        # #transform.SetMatrix(mat4x4)
+        planeMapper = vtk.vtkPolyDataMapper()
+        planeMapper.SetInputData(plane.GetOutput())
+        # # Transform the polydata
+        # transformPD = vtk.vtkTransformPolyDataFilter()
+        # transformPD.SetTransform(transform)
+        # transformPD.SetInputConnection(plane.GetOutputPort())
+        # transformPD.Update()
+        # # mapper transform
+        # planeMapper.SetInputConnection(transformPD.GetOutputPort())
+
+        #
+        planeActor = vtk.vtkActor()
+        planeActor.SetMapper(planeMapper)
+
+        planeActor.GetProperty().SetColor(0, 0, 1)
+        planeActor.GetProperty().SetOpacity(0.6)
+        self.ren.AddActor(planeActor)
+
+
+        filename = "aim2.stl"
+
+        reader = vtk.vtkSTLReader()
+        reader.SetFileName(filename)
+        # Apply the transforms arrow 1
+        transform_1 = vtk.vtkTransform()
+        transform_1.SetMatrix(mat4x4)
+        #transform_1.Translate(x0)
+
+        # Create a mapper and actor
+        mapper = vtk.vtkPolyDataMapper()
+        mapper.SetInputConnection(reader.GetOutputPort())
+
+        # Transform the polydata
+        transformPD = vtk.vtkTransformPolyDataFilter()
+        transformPD.SetTransform(transform_1)
+        transformPD.SetInputConnection(reader.GetOutputPort())
+        transformPD.Update()
+        # mapper transform
+        mapper.SetInputConnection(transformPD.GetOutputPort())
+
+        self.aimactor = vtk.vtkActor()
+        self.aimactor.SetMapper(mapper)
+        #self.aimactor.SetUserMatrix(mat4x4)
+
+        self.ren.AddActor(self.aimactor)
+
+        self.ren.ResetCamera()
+
+        # Render the scene
+        self.widget.Render()
+
+        self.menuTrackers.Enable(True)
+        self.obj.Enable(False)
+        self.delOBJ.Enable(True)
+
+        self.OBJ_ID = 3
+
+    def CenterOfMass(self, surface):
+        barycenter = [0.0,0.0,0.0]
+        n = surface.GetNumberOfPoints()
+        print n
+        for i in range(n):
+            point = surface.GetPoint(i)
+            barycenter[0] += point[0]
+            barycenter[1] += point[1]
+            barycenter[2] += point[2]
+        barycenter[0] /= n
+        barycenter[1] /= n
+        barycenter[2] /= n
+
+        return barycenter
 
     def ondelOBJ(self, evt):
         if self.OBJ_ID == 0:
