@@ -25,6 +25,8 @@ class nav(threading.Thread):
         x = 10.0
         y = 10.0
         z = -10.0
+        i=0
+        d=1
         while self.nav:
             if self.tck == "plh":
                 plh = self.tracker_init
@@ -52,6 +54,20 @@ class nav(threading.Thread):
 
                 print coord
                 wx.CallAfter(Publisher.sendMessage, 'Update Orientation', coord)
+            elif self.tck == "debug":
+                wx.CallAfter(Publisher.sendMessage, 'Update Orientation', i)
+                if i<=50 and d==1:
+                    i+=1
+                    d=1
+                elif i >= -50 and d == 0:
+                    i -= 1
+                    d = 0
+                elif i>50:
+                    d=0
+                else:
+                    d=1
+                print d, i
+
 
             time.sleep(0.175)
 

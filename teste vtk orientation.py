@@ -33,6 +33,7 @@ class MyFrame(wx.Frame):
         self.arrowOBJ = imp0.Append(wx.ID_ANY, 'Arrow')
         self.tube = imp0.Append(wx.ID_ANY, 'Tube')
         self.coil = imp0.Append(wx.ID_ANY, 'Coil')
+        #self.brain = imp0.Append(wx.ID_ANY, 'Brain')
         self.obj = menuF.AppendMenu(wx.ID_ANY, 'Create an OBJ', imp0)
 
         self.delOBJ = menuF.Append(wx.ID_ANY, 'Delete OBJ')
@@ -42,6 +43,7 @@ class MyFrame(wx.Frame):
         imp = wx.Menu()
         self.mtc = imp.Append(wx.ID_ANY, 'Claron')
         self.plh = imp.Append(wx.ID_ANY, 'Polhemus')
+        self.debug = imp.Append(wx.ID_ANY, 'Debug')
         self.menuTrackers = menuT.AppendMenu(wx.ID_ANY, 'Start Tracker', imp)
 
         self.stop = menuT.Append(wx.ID_ANY, 'Stop Tracker')
@@ -77,9 +79,11 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onarrow, self.arrowOBJ)
         self.Bind(wx.EVT_MENU, self.ontube, self.tube)
         self.Bind(wx.EVT_MENU, self.oncoil, self.coil)
+        #self.Bind(wx.EVT_MENU, self.onbrain, self.brain)
         self.Bind(wx.EVT_MENU, self.ondelOBJ, self.delOBJ)
         self.Bind(wx.EVT_MENU, self.onplh, self.plh)
         self.Bind(wx.EVT_MENU, self.onmtc, self.mtc)
+        self.Bind(wx.EVT_MENU, self.ondebug, self.debug)
         self.Bind(wx.EVT_MENU, self.onStop, self.stop)
 
         #create axes
@@ -216,105 +220,61 @@ class MyFrame(wx.Frame):
         mapper.SetInputConnection(reader.GetOutputPort())
         self.coilactor = vtk.vtkActor()
         self.coilactor.SetMapper(mapper)
+        self.coilactor.RotateX(-60)
+        self.coilactor.RotateZ(180)
+        #self.coilactor.GetProperty().SetOpacity(0.7)
 
-        arrowSource1 = vtk.vtkArrowSource()
-        arrowSource1.SetTipResolution(50)
-
-        # Apply the transforms
-        transform = vtk.vtkTransform()
-        transform.RotateY(-90)
-        transform.Translate(0,-35,50)
-        #transform.Concatenate(matrix)
-        transform.Scale(15.0, 15.0, 15.0)
-        # Transform the polydata
-        transformPD = vtk.vtkTransformPolyDataFilter()
-        transformPD.SetTransform(transform)
-        transformPD.SetInputConnection(arrowSource1.GetOutputPort())
-        # Create a mapper and actor
-        mapper = vtk.vtkPolyDataMapper()
-        mapper.SetInputConnection(transformPD.GetOutputPort())
-        self.arrowactorZ1 = vtk.vtkActor()
-        self.arrowactorZ1.GetProperty().SetColor(0, 0, 1)
-        self.arrowactorZ1.SetMapper(mapper)
-
-        arrowSource2 = vtk.vtkArrowSource()
-        arrowSource2.SetTipResolution(50)
-        # Apply the transforms
-        transform = vtk.vtkTransform()
-        transform.RotateY(90)
-        transform.Translate(0,-35,50)
-        #transform.Concatenate(matrix)
-        transform.Scale(15.0, 15.0, 15.0)
-        # Transform the polydata
-        transformPD = vtk.vtkTransformPolyDataFilter()
-        transformPD.SetTransform(transform)
-        transformPD.SetInputConnection(arrowSource2.GetOutputPort())
-        # Assign actor to the renderer
-        mapper = vtk.vtkPolyDataMapper()
-        mapper.SetInputConnection(transformPD.GetOutputPort())
-        self.arrowactorZ2 = vtk.vtkActor()
-        self.arrowactorZ2.SetMapper(mapper)
-        self.arrowactorZ2.GetProperty().SetColor(0, 0, 1)
-
-
-
-        reader = vtk.vtkSTLReader()
-        reader.SetFileName(filename)
-
-
-        mapper = vtk.vtkPolyDataMapper()
-        mapper.SetInputConnection(reader.GetOutputPort())
         self.coilactor2 = vtk.vtkActor()
         self.coilactor2.SetMapper(mapper)
-        self.coilactor2.SetPosition(150, 00, 00)
+        self.coilactor2.SetPosition(0, -150, 00)
+        self.coilactor2.RotateZ(180)
+        #self.coilactor2.GetProperty().SetOpacity(0.7)
 
-        arrowSource1 = vtk.vtkArrowSource()
-        arrowSource1.SetTipResolution(50)
+        self.coilactor3 = vtk.vtkActor()
+        self.coilactor3.SetMapper(mapper)
+        self.coilactor3.SetPosition(0, -300, 0)
+        self.coilactor3.RotateY(90)
+        self.coilactor3.RotateZ(180)
+        #self.coilactor3.GetProperty().SetOpacity(0.7)
 
-        # Apply the transforms
-        transform = vtk.vtkTransform()
-        transform.RotateZ(-90)
-        transform.Translate(0,-35,0)
-        #transform.Concatenate(matrix)
-        transform.Scale(15.0, 15.0, 15.0)
-        # Transform the polydata
-        transformPD = vtk.vtkTransformPolyDataFilter()
-        transformPD.SetTransform(transform)
-        transformPD.SetInputConnection(arrowSource1.GetOutputPort())
-        # Create a mapper and actor
-        mapper = vtk.vtkPolyDataMapper()
-        mapper.SetInputConnection(transformPD.GetOutputPort())
-        self.arrowactorY1 = vtk.vtkActor()
+        self.arrowactorZ1 = c.arrow([-50,-35,12], [-50,-35,50])
+        self.arrowactorZ1.GetProperty().SetColor(0, 0, 1)
+        self.arrowactorZ1.RotateX(-60)
+        self.arrowactorZ1.RotateZ(180)
+        self.arrowactorZ2 = c.arrow([50,-35,0], [50,-35,-50])
+        self.arrowactorZ2.GetProperty().SetColor(0, 0, 1)
+        self.arrowactorZ2.RotateX(-60)
+        self.arrowactorZ2.RotateZ(180)
+
+        self.arrowactorY1 = c.arrow([-50,-35,0], [-50,5,0])
         self.arrowactorY1.GetProperty().SetColor(0, 1, 0)
-        self.arrowactorY1.SetMapper(mapper)
-        self.arrowactorY1.SetPosition(150, 00, 00)
-
-        arrowSource2 = vtk.vtkArrowSource()
-        arrowSource2.SetTipResolution(50)
-        # Apply the transforms
-        transform = vtk.vtkTransform()
-        transform.RotateZ(90)
-        transform.Translate(0,-35,0)
-        #transform.Concatenate(matrix)
-        transform.Scale(15.0, 15.0, 15.0)
-        # Transform the polydata
-        transformPD = vtk.vtkTransformPolyDataFilter()
-        transformPD.SetTransform(transform)
-        transformPD.SetInputConnection(arrowSource2.GetOutputPort())
-        # Assign actor to the renderer
-        mapper = vtk.vtkPolyDataMapper()
-        mapper.SetInputConnection(transformPD.GetOutputPort())
-        self.arrowactorY2 = vtk.vtkActor()
-        self.arrowactorY2.SetMapper(mapper)
+        self.arrowactorY1.SetPosition(0, -150, 0)
+        self.arrowactorY1.RotateZ(180)
+        self.arrowactorY2 = c.arrow([50,-35,0], [50,-75,0])
         self.arrowactorY2.GetProperty().SetColor(0, 1, 0)
-        self.arrowactorY2.SetPosition(150, 00, 00)
-#todo usar a criação de vetor utilizando dois pontos para mudar a magnitude
+        self.arrowactorY2.SetPosition(0, -150, 0)
+        self.arrowactorY2.RotateZ(180)
+
+        self.arrowactorX1 = c.arrow([0, 65, 38], [0, 65, 68])
+        self.arrowactorX1.GetProperty().SetColor(1, 0, 0)
+        self.arrowactorX1.SetPosition(0, -300, 0)
+        self.arrowactorX1.RotateY(90)
+        self.arrowactorX1.RotateZ(180)
+        self.arrowactorX2 = c.arrow([0, -55, 5], [0, -55, -30])
+        self.arrowactorX2.GetProperty().SetColor(1, 0, 0)
+        self.arrowactorX2.SetPosition(0, -300, 0)
+        self.arrowactorX2.RotateY(90)
+        self.arrowactorX2.RotateZ(180)
+
         self.ren.AddActor(self.coilactor)
         self.ren.AddActor(self.arrowactorZ1)
         self.ren.AddActor(self.arrowactorZ2)
         self.ren.AddActor(self.coilactor2)
         self.ren.AddActor(self.arrowactorY1)
         self.ren.AddActor(self.arrowactorY2)
+        self.ren.AddActor(self.coilactor3)
+        self.ren.AddActor(self.arrowactorX1)
+        self.ren.AddActor(self.arrowactorX2)
 
         self.ren.ResetCamera()
 
@@ -335,8 +295,14 @@ class MyFrame(wx.Frame):
             self.ren.RemoveActor(self.lineActor)
         elif self.OBJ_ID == 2:
             self.ren.RemoveActor(self.coilactor)
-            self.ren.RemoveActor(self.arrowactor)
-            self.ren.RemoveActor(self.arrowactor2)
+            self.ren.RemoveActor(self.coilactor2)
+            self.ren.RemoveActor(self.coilactor3)
+            self.ren.RemoveActor(self.arrowactorX1)
+            self.ren.RemoveActor(self.arrowactorX2)
+            self.ren.RemoveActor(self.arrowactorY1)
+            self.ren.RemoveActor(self.arrowactorY2)
+            self.ren.RemoveActor(self.arrowactorZ1)
+            self.ren.RemoveActor(self.arrowactorZ2)
         self.widget.Render()
         self.obj.Enable(True)
         self.menuTrackers.Enable(False)
@@ -367,6 +333,15 @@ class MyFrame(wx.Frame):
         self.delOBJ.Enable(False)
         self.thr = coord.nav(self.stop_flag,self.tracker_init, tck)
 
+    def ondebug(self, evt):
+        self.tracker_init = 'debug'
+        self.stop_flag = 1
+        tck = 'debug'
+        self.menuTrackers.Enable(False)
+        self.stop.Enable(True)
+        self.delOBJ.Enable(False)
+        self.thr = coord.nav(self.stop_flag,self.tracker_init, tck)
+
     def __bind_events(self):
         Publisher.subscribe(self.__update_orientation, 'Update Orientation')
 
@@ -382,10 +357,48 @@ class MyFrame(wx.Frame):
             self.cube.SetPosition(((float(coord[6]))+float(coord[9]))/2,((float(coord[7]))+float(coord[10]))/2,((float(coord[8]))+float(coord[11]))/2)
             print ((((float(coord[6]))+float(coord[9]))/2),(((float(coord[7]))+float(coord[10]))/2),(((float(coord[11]))+float(coord[8]))/2))
         if self.OBJ_ID == 2:
-            self.arrowactorZ1.SetScale(1, 1, random.uniform(0,5))
-            self.arrowactorZ2.SetScale(1, 1, random.uniform(0,5))
-            self.arrowactorY1.SetScale(1, random.uniform(0,5), 1)
-            self.arrowactorY2.SetScale(1, random.uniform(0,5), 1)
+            self.ren.RemoveActor(self.arrowactorZ1)
+            self.ren.RemoveActor(self.arrowactorZ2)
+            offset = 5
+            self.arrowactorZ1 = c.arrow([-55, -35, offset], [-55, -35, offset + coord])
+            self.arrowactorZ1.RotateX(-60)
+            self.arrowactorZ1.RotateZ(180)
+            self.arrowactorZ2 = c.arrow([55, -35, offset], [55, -35, offset - coord])
+            self.arrowactorZ2.RotateX(-60)
+            self.arrowactorZ2.RotateZ(180)
+            self.ren.AddActor(self.arrowactorZ1)
+            self.ren.AddActor(self.arrowactorZ2)
+
+            self.ren.RemoveActor(self.arrowactorY1)
+            self.ren.RemoveActor(self.arrowactorY2)
+            offset = -35
+            self.arrowactorY1 = c.arrow([-55, offset, 0], [-55, offset + coord, 0])
+            self.arrowactorY2 = c.arrow([55, offset, 0], [55, offset - coord, 0])
+            self.arrowactorY1.SetPosition(0, -150, 0)
+            self.arrowactorY1.RotateZ(180)
+            self.arrowactorY1.GetProperty().SetColor(0, 1, 0)
+            self.arrowactorY2.SetPosition(0, -150, 0)
+            self.arrowactorY2.RotateZ(180)
+            self.arrowactorY2.GetProperty().SetColor(0, 1, 0)
+            self.ren.AddActor(self.arrowactorY1)
+            self.ren.AddActor(self.arrowactorY2)
+
+            self.ren.RemoveActor(self.arrowactorX1)
+            self.ren.RemoveActor(self.arrowactorX2)
+            offset = 38
+            self.arrowactorX1 = c.arrow([0, 65, offset], [0, 65, offset + coord])
+            offset = 5
+            self.arrowactorX2 = c.arrow([0, -55, offset], [0, -55, offset - coord])
+            self.arrowactorX1.SetPosition(0, -300, 0)
+            self.arrowactorX1.RotateY(90)
+            self.arrowactorX1.RotateZ(180)
+            self.arrowactorX1.GetProperty().SetColor(1, 0, 0)
+            self.arrowactorX2.SetPosition(0, -300, 0)
+            self.arrowactorX2.RotateY(90)
+            self.arrowactorX2.RotateZ(180)
+            self.arrowactorX2.GetProperty().SetColor(1, 0, 0)
+            self.ren.AddActor(self.arrowactorX1)
+            self.ren.AddActor(self.arrowactorX2)
         self.widget.Render()
         #self.ren.ResetCamera()
 

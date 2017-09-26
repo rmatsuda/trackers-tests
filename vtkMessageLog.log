@@ -1,8 +1,4 @@
-Generic Warning: In ..\..\..\Common\DataModel\vtkPolyLine.cxx, line 106
-Coincident points in polyline...can't compute normals
-
-
-Warning: In ..\..\..\Filters\Core\vtkTubeFilter.cxx, line 243
-vtkTubeFilter (000000000DB308F0): Could not generate normals for line. Skipping to next.
+Warning: In C:\Sources\VTK-6.3.0\VTK-6.3.0\Rendering\Core\vtkRenderWindow.cxx, line 276
+vtkWin32OpenGLRenderWindow (0000000006A19780): Adjusting stereo mode on a window that does not support stereo type CrystalEyes is not possible.
 
 
