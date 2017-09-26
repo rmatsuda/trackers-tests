@@ -7,6 +7,8 @@ from wx.lib.pubsub import setuparg1
 from wx.lib.pubsub import pub as Publisher
 import numpy as np
 from math import radians, sin, cos
+import create as c
+import random
 
 import trackers
 import coord
@@ -30,6 +32,7 @@ class MyFrame(wx.Frame):
         imp0 = wx.Menu()
         self.arrowOBJ = imp0.Append(wx.ID_ANY, 'Arrow')
         self.tube = imp0.Append(wx.ID_ANY, 'Tube')
+        self.coil = imp0.Append(wx.ID_ANY, 'Coil')
         self.obj = menuF.AppendMenu(wx.ID_ANY, 'Create an OBJ', imp0)
 
         self.delOBJ = menuF.Append(wx.ID_ANY, 'Delete OBJ')
@@ -73,6 +76,7 @@ class MyFrame(wx.Frame):
         # Bind the menu
         self.Bind(wx.EVT_MENU, self.onarrow, self.arrowOBJ)
         self.Bind(wx.EVT_MENU, self.ontube, self.tube)
+        self.Bind(wx.EVT_MENU, self.oncoil, self.coil)
         self.Bind(wx.EVT_MENU, self.ondelOBJ, self.delOBJ)
         self.Bind(wx.EVT_MENU, self.onplh, self.plh)
         self.Bind(wx.EVT_MENU, self.onmtc, self.mtc)
@@ -174,6 +178,7 @@ class MyFrame(wx.Frame):
         self.lineActor.SetMapper(lineMapper)
         #self.lineActor.SetScale(10.0, 10.0, 10.0)
 
+
         # create cube
         cube = vtk.vtkCubeSource()
         cube.SetXLength(1.0)
@@ -200,17 +205,142 @@ class MyFrame(wx.Frame):
 
         self.OBJ_ID = 1
 
+    def oncoil(self, evt):
+        # Create a line
+        filename = "bobina1.stl"
+
+        reader = vtk.vtkSTLReader()
+        reader.SetFileName(filename)
+
+        mapper = vtk.vtkPolyDataMapper()
+        mapper.SetInputConnection(reader.GetOutputPort())
+        self.coilactor = vtk.vtkActor()
+        self.coilactor.SetMapper(mapper)
+
+        arrowSource1 = vtk.vtkArrowSource()
+        arrowSource1.SetTipResolution(50)
+
+        # Apply the transforms
+        transform = vtk.vtkTransform()
+        transform.RotateY(-90)
+        transform.Translate(0,-35,50)
+        #transform.Concatenate(matrix)
+        transform.Scale(15.0, 15.0, 15.0)
+        # Transform the polydata
+        transformPD = vtk.vtkTransformPolyDataFilter()
+        transformPD.SetTransform(transform)
+        transformPD.SetInputConnection(arrowSource1.GetOutputPort())
+        # Create a mapper and actor
+        mapper = vtk.vtkPolyDataMapper()
+        mapper.SetInputConnection(transformPD.GetOutputPort())
+        self.arrowactorZ1 = vtk.vtkActor()
+        self.arrowactorZ1.GetProperty().SetColor(0, 0, 1)
+        self.arrowactorZ1.SetMapper(mapper)
+
+        arrowSource2 = vtk.vtkArrowSource()
+        arrowSource2.SetTipResolution(50)
+        # Apply the transforms
+        transform = vtk.vtkTransform()
+        transform.RotateY(90)
+        transform.Translate(0,-35,50)
+        #transform.Concatenate(matrix)
+        transform.Scale(15.0, 15.0, 15.0)
+        # Transform the polydata
+        transformPD = vtk.vtkTransformPolyDataFilter()
+        transformPD.SetTransform(transform)
+        transformPD.SetInputConnection(arrowSource2.GetOutputPort())
+        # Assign actor to the renderer
+        mapper = vtk.vtkPolyDataMapper()
+        mapper.SetInputConnection(transformPD.GetOutputPort())
+        self.arrowactorZ2 = vtk.vtkActor()
+        self.arrowactorZ2.SetMapper(mapper)
+        self.arrowactorZ2.GetProperty().SetColor(0, 0, 1)
+
+
+
+        reader = vtk.vtkSTLReader()
+        reader.SetFileName(filename)
+
+
+        mapper = vtk.vtkPolyDataMapper()
+        mapper.SetInputConnection(reader.GetOutputPort())
+        self.coilactor2 = vtk.vtkActor()
+        self.coilactor2.SetMapper(mapper)
+        self.coilactor2.SetPosition(150, 00, 00)
+
+        arrowSource1 = vtk.vtkArrowSource()
+        arrowSource1.SetTipResolution(50)
+
+        # Apply the transforms
+        transform = vtk.vtkTransform()
+        transform.RotateZ(-90)
+        transform.Translate(0,-35,0)
+        #transform.Concatenate(matrix)
+        transform.Scale(15.0, 15.0, 15.0)
+        # Transform the polydata
+        transformPD = vtk.vtkTransformPolyDataFilter()
+        transformPD.SetTransform(transform)
+        transformPD.SetInputConnection(arrowSource1.GetOutputPort())
+        # Create a mapper and actor
+        mapper = vtk.vtkPolyDataMapper()
+        mapper.SetInputConnection(transformPD.GetOutputPort())
+        self.arrowactorY1 = vtk.vtkActor()
+        self.arrowactorY1.GetProperty().SetColor(0, 1, 0)
+        self.arrowactorY1.SetMapper(mapper)
+        self.arrowactorY1.SetPosition(150, 00, 00)
+
+        arrowSource2 = vtk.vtkArrowSource()
+        arrowSource2.SetTipResolution(50)
+        # Apply the transforms
+        transform = vtk.vtkTransform()
+        transform.RotateZ(90)
+        transform.Translate(0,-35,0)
+        #transform.Concatenate(matrix)
+        transform.Scale(15.0, 15.0, 15.0)
+        # Transform the polydata
+        transformPD = vtk.vtkTransformPolyDataFilter()
+        transformPD.SetTransform(transform)
+        transformPD.SetInputConnection(arrowSource2.GetOutputPort())
+        # Assign actor to the renderer
+        mapper = vtk.vtkPolyDataMapper()
+        mapper.SetInputConnection(transformPD.GetOutputPort())
+        self.arrowactorY2 = vtk.vtkActor()
+        self.arrowactorY2.SetMapper(mapper)
+        self.arrowactorY2.GetProperty().SetColor(0, 1, 0)
+        self.arrowactorY2.SetPosition(150, 00, 00)
+#todo usar a criação de vetor utilizando dois pontos para mudar a magnitude
+        self.ren.AddActor(self.coilactor)
+        self.ren.AddActor(self.arrowactorZ1)
+        self.ren.AddActor(self.arrowactorZ2)
+        self.ren.AddActor(self.coilactor2)
+        self.ren.AddActor(self.arrowactorY1)
+        self.ren.AddActor(self.arrowactorY2)
+
+        self.ren.ResetCamera()
+
+        # Render the scene
+        self.widget.Render()
+
+        self.menuTrackers.Enable(True)
+        self.obj.Enable(False)
+        self.delOBJ.Enable(True)
+
+        self.OBJ_ID = 2
+
     def ondelOBJ(self, evt):
         if self.OBJ_ID == 0:
             self.ren.RemoveActor(self.ball_actorP)
             self.ren.RemoveActor(self.arrow)
         elif self.OBJ_ID == 1:
             self.ren.RemoveActor(self.lineActor)
+        elif self.OBJ_ID == 2:
+            self.ren.RemoveActor(self.coilactor)
+            self.ren.RemoveActor(self.arrowactor)
+            self.ren.RemoveActor(self.arrowactor2)
         self.widget.Render()
         self.obj.Enable(True)
         self.menuTrackers.Enable(False)
         self.delOBJ.Enable(False)
-
 
     def onStop(self, evt):
         self.stop_flag = None
@@ -251,8 +381,13 @@ class MyFrame(wx.Frame):
             self.lineSource.SetPoint2(float(coord[6]), float(coord[7]), float(coord[8]))
             self.cube.SetPosition(((float(coord[6]))+float(coord[9]))/2,((float(coord[7]))+float(coord[10]))/2,((float(coord[8]))+float(coord[11]))/2)
             print ((((float(coord[6]))+float(coord[9]))/2),(((float(coord[7]))+float(coord[10]))/2),(((float(coord[11]))+float(coord[8]))/2))
+        if self.OBJ_ID == 2:
+            self.arrowactorZ1.SetScale(1, 1, random.uniform(0,5))
+            self.arrowactorZ2.SetScale(1, 1, random.uniform(0,5))
+            self.arrowactorY1.SetScale(1, random.uniform(0,5), 1)
+            self.arrowactorY2.SetScale(1, random.uniform(0,5), 1)
         self.widget.Render()
-        self.ren.ResetCamera()
+        #self.ren.ResetCamera()
 
 # ----------------------------------------------------------------------------------------------
 
