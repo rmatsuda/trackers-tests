@@ -9,6 +9,7 @@ import numpy as np
 from math import radians, sin, cos
 import create as c
 import random
+from numpy.core.umath_tests import inner1d
 
 import trackers
 import coord
@@ -299,13 +300,12 @@ class MyFrame(wx.Frame):
         self.brainactor.SetMapper(mapper)
         self.ren.AddActor(self.brainactor)
         target = [151.4, -113, 176.8]
-        sphere = c.sphere(target, 5, [1,0,0])
+        sphere = c.sphere(target, 5, [1, 0, 0])
         self.ren.AddActor(sphere)
 
         # ------------------------------- Create plane
 
         # calculating a plane
-        x0 = target
         scale = vtk.vtkTransform()
         scale.Scale(1, 1, 1)
         filter = vtk.vtkTransformPolyDataFilter()
@@ -316,38 +316,7 @@ class MyFrame(wx.Frame):
         surface = filter.GetOutput()
 
         pTarget = self.CenterOfMass(surface)
-
-        v3 = np.array(pTarget) - x0  # normal to the plane
-        v3 = v3 / np.linalg.norm(v3)  # unit vector
-
-        print "np.array(pTarget): ", np.array(pTarget)
-
-        d = np.dot(v3, x0)
-
-        # prevents division by zero.
-        if v3[0] == 0.0:
-            v3[0] = 1e-09
-
-        x1 = np.array([(d - v3[1] - v3[2]) / v3[0], 1, 1])
-        v2 = x1 - x0
-        v2 = v2 / np.linalg.norm(v2)  # unit vector
-
-        v1 = np.cross(v3, v2)
-
-        v1 = v1 / np.linalg.norm(v1)  # unit vector
-
-        x2 = x0 + v1
-
-        # calculates the matrix for the change of coordinate systems (from canonical to the plane's).
-        # remember that, in np.dot(M,p), even though p is a line vector (e.g.,np.array([1,2,3])), it is treated as a column for the dot multiplication.
-        M_plane_inv = np.array([[v1[0], v2[0], v3[0], x0[0]],
-                                [v1[1], v2[1], v3[1], x0[1]],
-                                [v1[2], v2[2], v3[2], x0[2]],
-                                [0, 0, 0, 1]])
-        print M_plane_inv
-
-        M_plane_base = np.linalg.inv(M_plane_inv)
-        print M_plane_base
+        v3, M_plane_inv = self.Plane(target, pTarget)
 
         mat4x4 = vtk.vtkMatrix4x4()
         for i in range(4):
@@ -356,45 +325,66 @@ class MyFrame(wx.Frame):
             mat4x4.SetElement(i, 2, M_plane_inv[i][2])
             mat4x4.SetElement(i, 3, M_plane_inv[i][3])
 
-        print mat4x4
         # plane for visualization.
         plane = vtk.vtkPlaneSource()
-        plane.SetCenter(x0)
+        plane.SetCenter(target)
         plane.SetNormal(v3)
-        #plane.SetPoint1(x1)
-       # plane.SetPoint2(x2)
         plane.Update()
-        # # plane
-        # transform = vtk.vtkTransform()
-        # transform.Scale(100,100,100)
-        # #transform.SetMatrix(mat4x4)
-        planeMapper = vtk.vtkPolyDataMapper()
-        planeMapper.SetInputData(plane.GetOutput())
-        # # Transform the polydata
-        # transformPD = vtk.vtkTransformPolyDataFilter()
-        # transformPD.SetTransform(transform)
-        # transformPD.SetInputConnection(plane.GetOutputPort())
-        # transformPD.Update()
-        # # mapper transform
-        # planeMapper.SetInputConnection(transformPD.GetOutputPort())
 
-        #
-        planeActor = vtk.vtkActor()
-        planeActor.SetMapper(planeMapper)
+        #Plane
+        # Create four points (must be in counter clockwise order)
+        p0 = [-1.0, -1.0, 0.0]
+        p1 = [-1.0, 1.0, 0.0]
+        p2 = [1.0, 1.0, 0.0]
+        p3 = [1.0, -1.0, 0.0]
+        # Add the points to a vtkPoints object
+        points = vtk.vtkPoints()
+        points.InsertNextPoint(p0)
+        points.InsertNextPoint(p1)
+        points.InsertNextPoint(p2)
+        points.InsertNextPoint(p3)
+        # Create a quad on the four points
+        quad = vtk.vtkQuad()
+        quad.GetPointIds().SetId(0, 0)
+        quad.GetPointIds().SetId(1, 1)
+        quad.GetPointIds().SetId(2, 2)
+        quad.GetPointIds().SetId(3, 3)
+        # Create a cell array to store the quad in
+        quads = vtk.vtkCellArray()
+        quads.InsertNextCell(quad)
+        # Create a polydata to store everything in
+        polydata = vtk.vtkPolyData()
+        # Add the points and quads to the dataset
+        polydata.SetPoints(points)
+        polydata.SetPolys(quads)
+        # Setup actor and mapper
+        mapper = vtk.vtkPolyDataMapper()
+        mapper.SetInputData(polydata)
 
-        planeActor.GetProperty().SetColor(0, 0, 1)
-        planeActor.GetProperty().SetOpacity(0.6)
-        self.ren.AddActor(planeActor)
+        # Transform the polydata
+        transform = vtk.vtkTransform()
+        transform.SetMatrix(mat4x4)
+        transform.Scale(50, 50, 50)
+        transformPD = vtk.vtkTransformPolyDataFilter()
+        transformPD.SetTransform(transform)
+        transformPD.SetInputData(polydata)
+        transformPD.Update()
+        # mapper transform
+        mapper.SetInputConnection(transformPD.GetOutputPort())
 
+        quadactor = vtk.vtkActor()
+        quadactor.SetMapper(mapper)
+        quadactor.GetProperty().SetColor(1,1,1)
+        quadactor.GetProperty().SetOpacity(0.6)
+        self.ren.AddActor(quadactor)
 
-        filename = "aim2.stl"
+        filename = "aim.stl"
 
         reader = vtk.vtkSTLReader()
         reader.SetFileName(filename)
         # Apply the transforms arrow 1
         transform_1 = vtk.vtkTransform()
         transform_1.SetMatrix(mat4x4)
-        #transform_1.Translate(x0)
 
         # Create a mapper and actor
         mapper = vtk.vtkPolyDataMapper()
@@ -410,11 +400,26 @@ class MyFrame(wx.Frame):
 
         self.aimactor = vtk.vtkActor()
         self.aimactor.SetMapper(mapper)
-        #self.aimactor.SetUserMatrix(mat4x4)
-
+        self.aimactor.GetProperty().SetColor(0, 0, 1)
         self.ren.AddActor(self.aimactor)
 
+        #set camera
         self.ren.ResetCamera()
+        cam_focus = target
+        cam = self.ren.GetActiveCamera()
+        initial_focus = np.array(cam.GetFocalPoint())
+        cam_pos0 = np.array(cam.GetPosition())
+        cam_focus0 = np.array(cam.GetFocalPoint())
+        v0 = cam_pos0 - cam_focus0
+        v0n = np.sqrt(inner1d(v0, v0))
+
+        v1 = (cam_focus - initial_focus)
+        v1n = np.sqrt(inner1d(v1, v1))
+        if not v1n:
+            v1n = 1.0
+        cam_pos = (v1 / v1n) * v0n + cam_focus
+        cam.SetFocalPoint(cam_focus)
+        cam.SetPosition(cam_pos)
 
         # Render the scene
         self.widget.Render()
@@ -428,7 +433,6 @@ class MyFrame(wx.Frame):
     def CenterOfMass(self, surface):
         barycenter = [0.0,0.0,0.0]
         n = surface.GetNumberOfPoints()
-        print n
         for i in range(n):
             point = surface.GetPoint(i)
             barycenter[0] += point[0]
@@ -439,6 +443,30 @@ class MyFrame(wx.Frame):
         barycenter[2] /= n
 
         return barycenter
+
+    def Plane(self, x0, pTarget):
+        v3 = np.array(pTarget) - x0  # normal to the plane
+        v3 = v3 / np.linalg.norm(v3)  # unit vector
+
+        d = np.dot(v3, x0)
+        # prevents division by zero.
+        if v3[0] == 0.0:
+            v3[0] = 1e-09
+
+        x1 = np.array([(d - v3[1] - v3[2]) / v3[0], 1, 1])
+        v2 = x1 - x0
+        v2 = v2 / np.linalg.norm(v2)  # unit vector
+        v1 = np.cross(v3, v2)
+        v1 = v1 / np.linalg.norm(v1)  # unit vector
+        x2 = x0 + v1
+        # calculates the matrix for the change of coordinate systems (from canonical to the plane's).
+        # remember that, in np.dot(M,p), even though p is a line vector (e.g.,np.array([1,2,3])), it is treated as a column for the dot multiplication.
+        M_plane_inv = np.array([[v1[0], v2[0], v3[0], x0[0]],
+                                [v1[1], v2[1], v3[1], x0[1]],
+                                [v1[2], v2[2], v3[2], x0[2]],
+                                [0, 0, 0, 1]])
+
+        return v3, M_plane_inv
 
     def ondelOBJ(self, evt):
         if self.OBJ_ID == 0:
@@ -517,6 +545,10 @@ class MyFrame(wx.Frame):
             self.arrowactorZ1.RotateX(-60)
             self.arrowactorZ1.RotateZ(180)
             self.arrowactorZ2 = c.arrow([55, -35, offset], [55, -35, offset - coord])
+            if coord == 0:
+                self.coilactor.GetProperty().SetColor(0, 1, 0)
+            else:
+                self.coilactor.GetProperty().SetColor(1, 1, 1)
             self.arrowactorZ2.RotateX(-60)
             self.arrowactorZ2.RotateZ(180)
             self.ren.AddActor(self.arrowactorZ1)
