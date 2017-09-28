@@ -60,6 +60,7 @@ class MyFrame(wx.Frame):
         # Add the vtk window widget
 
         self.widget = wxVTKRenderWindowInteractor(self, -1)
+        #self.widget.RemoveObservers('LeftButtonPressEvent')
 
         self.widget.Enable(1)
 
@@ -88,12 +89,12 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onStop, self.stop)
 
         #create axes
-        axes = vtk.vtkAxesActor()
-        self.marker = vtk.vtkOrientationMarkerWidget()
-        self.marker.SetInteractor(self.widget._Iren)
-        self.marker.SetOrientationMarker(axes)
-        self.marker.SetViewport(0.75, 0, 1, 0.25)
-        self.marker.SetEnabled(1)
+        # axes = vtk.vtkAxesActor()
+        # self.marker = vtk.vtkOrientationMarkerWidget()
+        # self.marker.SetInteractor(self.widget._Iren)
+        # self.marker.SetOrientationMarker(axes)
+        # self.marker.SetViewport(0.75, 0, 1, 0.25)
+        # self.marker.SetEnabled(1)
 
     def onarrow(self, evt):
         arrowSource1 = vtk.vtkArrowSource()
@@ -268,6 +269,7 @@ class MyFrame(wx.Frame):
         self.arrowactorX2.RotateZ(180)
 
         self.ren.AddActor(self.coilactor)
+        self.ren2.AddActor(self.coilactor)
         self.ren.AddActor(self.arrowactorZ1)
         self.ren.AddActor(self.arrowactorZ2)
         self.ren.AddActor(self.coilactor2)
@@ -276,8 +278,29 @@ class MyFrame(wx.Frame):
         self.ren.AddActor(self.coilactor3)
         self.ren.AddActor(self.arrowactorX1)
         self.ren.AddActor(self.arrowactorX2)
+        #create axes
+        # self.assembly = vtk.vtkAssembly()
+        # self.assembly.AddPart(self.coilactor)
+        # self.assembly.AddPart(self.coilactor)
+        # self.assembly.AddPart(self.arrowactorZ1)
+        # self.assembly.AddPart(self.arrowactorZ2)
+        # self.assembly.AddPart(self.coilactor2)
+        # self.assembly.AddPart(self.arrowactorY1)
+        # self.assembly.AddPart(self.arrowactorY2)
+        # self.assembly.AddPart(self.coilactor3)
+        # self.assembly.AddPart(self.arrowactorX1)
+        # self.assembly.AddPart(self.arrowactorX2)
+
+
+        # self.coil_box = vtk.vtkOrientationMarkerWidget()
+        # self.coil_box.SetInteractor(self.widget._Iren)
+        # self.coil_box.SetOrientationMarker(self.assembly)
+        # self.coil_box.SetViewport(0.75, 0, 1, 0.25)
+        # self.coil_box.SetEnabled(1)
 
         self.ren.ResetCamera()
+        self.ren2.ResetCamera()
+        #self.ren.Camera(0)
 
         # Render the scene
         self.widget.Render()
@@ -289,6 +312,12 @@ class MyFrame(wx.Frame):
         self.OBJ_ID = 2
 
     def onbrain(self, evt):
+        self.ren.SetViewport(0, 0, 0.75, 1)
+
+        self.ren2 = vtk.vtkRenderer()
+
+        self.widget.GetRenderWindow().AddRenderer(self.ren2)
+        self.ren2.SetViewport(0.75, 0, 1,1)
         filename = "c101_MRI_clean_2.obj"
 
         reader = vtk.vtkOBJReader()
@@ -331,52 +360,60 @@ class MyFrame(wx.Frame):
         plane.SetNormal(v3)
         plane.Update()
 
-        #Plane
-        # Create four points (must be in counter clockwise order)
-        p0 = [-1.0, -1.0, 0.0]
-        p1 = [-1.0, 1.0, 0.0]
-        p2 = [1.0, 1.0, 0.0]
-        p3 = [1.0, -1.0, 0.0]
-        # Add the points to a vtkPoints object
-        points = vtk.vtkPoints()
-        points.InsertNextPoint(p0)
-        points.InsertNextPoint(p1)
-        points.InsertNextPoint(p2)
-        points.InsertNextPoint(p3)
-        # Create a quad on the four points
-        quad = vtk.vtkQuad()
-        quad.GetPointIds().SetId(0, 0)
-        quad.GetPointIds().SetId(1, 1)
-        quad.GetPointIds().SetId(2, 2)
-        quad.GetPointIds().SetId(3, 3)
-        # Create a cell array to store the quad in
-        quads = vtk.vtkCellArray()
-        quads.InsertNextCell(quad)
-        # Create a polydata to store everything in
-        polydata = vtk.vtkPolyData()
-        # Add the points and quads to the dataset
-        polydata.SetPoints(points)
-        polydata.SetPolys(quads)
-        # Setup actor and mapper
+        filename = "bobina1_dummy2.stl"
+
+        reader = vtk.vtkSTLReader()
+        reader.SetFileName(filename)
         mapper = vtk.vtkPolyDataMapper()
-        mapper.SetInputData(polydata)
+        mapper.SetInputConnection(reader.GetOutputPort())
+
+        #Plane
+        # # Create four points (must be in counter clockwise order)
+        # p0 = [-1.0, -1.0, 0.0]
+        # p1 = [-1.0, 1.0, 0.0]
+        # p2 = [1.0, 1.0, 0.0]
+        # p3 = [1.0, -1.0, 0.0]
+        # # Add the points to a vtkPoints object
+        # points = vtk.vtkPoints()
+        # points.InsertNextPoint(p0)
+        # points.InsertNextPoint(p1)
+        # points.InsertNextPoint(p2)
+        # points.InsertNextPoint(p3)
+        # # Create a quad on the four points
+        # quad = vtk.vtkQuad()
+        # quad.GetPointIds().SetId(0, 0)
+        # quad.GetPointIds().SetId(1, 1)
+        # quad.GetPointIds().SetId(2, 2)
+        # quad.GetPointIds().SetId(3, 3)
+        # # Create a cell array to store the quad in
+        # quads = vtk.vtkCellArray()
+        # quads.InsertNextCell(quad)
+        # # Create a polydata to store everything in
+        # polydata = vtk.vtkPolyData()
+        # # Add the points and quads to the dataset
+        # polydata.SetPoints(points)
+        # polydata.SetPolys(quads)
+        # # Setup actor and mapper
+        # mapper = vtk.vtkPolyDataMapper()
+        # mapper.SetInputData(polydata)
 
         # Transform the polydata
         transform = vtk.vtkTransform()
         transform.SetMatrix(mat4x4)
-        transform.Scale(50, 50, 50)
+        transform.Scale(1, 1, 1)
+        #transform.RotateWXYZ(180, 0, 1, 0)
         transformPD = vtk.vtkTransformPolyDataFilter()
         transformPD.SetTransform(transform)
-        transformPD.SetInputData(polydata)
+        transformPD.SetInputConnection(reader.GetOutputPort())
         transformPD.Update()
         # mapper transform
         mapper.SetInputConnection(transformPD.GetOutputPort())
 
-        quadactor = vtk.vtkActor()
-        quadactor.SetMapper(mapper)
-        quadactor.GetProperty().SetColor(1,1,1)
-        quadactor.GetProperty().SetOpacity(0.6)
-        self.ren.AddActor(quadactor)
+        coil_dummy = vtk.vtkActor()
+        coil_dummy.SetMapper(mapper)
+        coil_dummy.GetProperty().SetColor(1,1,1)
+        coil_dummy.GetProperty().SetOpacity(0.4)
+        self.ren.AddActor(coil_dummy)
 
         filename = "aim.stl"
 
@@ -420,6 +457,74 @@ class MyFrame(wx.Frame):
         cam_pos = (v1 / v1n) * v0n + cam_focus
         cam.SetFocalPoint(cam_focus)
         cam.SetPosition(cam_pos)
+
+        filename = "bobina1.stl"
+
+        reader = vtk.vtkSTLReader()
+        reader.SetFileName(filename)
+
+        mapper = vtk.vtkPolyDataMapper()
+        mapper.SetInputConnection(reader.GetOutputPort())
+        self.coilactor = vtk.vtkActor()
+        self.coilactor.SetMapper(mapper)
+        self.coilactor.RotateX(-60)
+        self.coilactor.RotateZ(180)
+        #self.coilactor.GetProperty().SetOpacity(0.7)
+
+        self.coilactor2 = vtk.vtkActor()
+        self.coilactor2.SetMapper(mapper)
+        self.coilactor2.SetPosition(0, -150, 0)
+        self.coilactor2.RotateZ(180)
+        #self.coilactor2.GetProperty().SetOpacity(0.7)
+
+        self.coilactor3 = vtk.vtkActor()
+        self.coilactor3.SetMapper(mapper)
+        self.coilactor3.SetPosition(0, -300, 0)
+        self.coilactor3.RotateY(90)
+        self.coilactor3.RotateZ(180)
+        #self.coilactor3.GetProperty().SetOpacity(0.7)
+
+        self.arrowactorZ1 = c.arrow([-50,-35,12], [-50,-35,50])
+        self.arrowactorZ1.GetProperty().SetColor(0, 0, 1)
+        self.arrowactorZ1.RotateX(-60)
+        self.arrowactorZ1.RotateZ(180)
+        self.arrowactorZ2 = c.arrow([50,-35,0], [50,-35,-50])
+        self.arrowactorZ2.GetProperty().SetColor(0, 0, 1)
+        self.arrowactorZ2.RotateX(-60)
+        self.arrowactorZ2.RotateZ(180)
+
+        self.arrowactorY1 = c.arrow([-50,-35,0], [-50,5,0])
+        self.arrowactorY1.GetProperty().SetColor(0, 1, 0)
+        self.arrowactorY1.SetPosition(0, -150, 0)
+        self.arrowactorY1.RotateZ(180)
+        self.arrowactorY2 = c.arrow([50,-35,0], [50,-75,0])
+        self.arrowactorY2.GetProperty().SetColor(0, 1, 0)
+        self.arrowactorY2.SetPosition(0, -150, 0)
+        self.arrowactorY2.RotateZ(180)
+
+        self.arrowactorX1 = c.arrow([0, 65, 38], [0, 65, 68])
+        self.arrowactorX1.GetProperty().SetColor(1, 0, 0)
+        self.arrowactorX1.SetPosition(0, -300, 0)
+        self.arrowactorX1.RotateY(90)
+        self.arrowactorX1.RotateZ(180)
+        self.arrowactorX2 = c.arrow([0, -55, 5], [0, -55, -30])
+        self.arrowactorX2.GetProperty().SetColor(1, 0, 0)
+        self.arrowactorX2.SetPosition(0, -300, 0)
+        self.arrowactorX2.RotateY(90)
+        self.arrowactorX2.RotateZ(180)
+
+        self.ren2.AddActor(self.coilactor)
+        self.ren2.AddActor(self.arrowactorZ1)
+        self.ren2.AddActor(self.arrowactorZ2)
+        self.ren2.AddActor(self.coilactor2)
+        self.ren2.AddActor(self.arrowactorY1)
+        self.ren2.AddActor(self.arrowactorY2)
+        self.ren2.AddActor(self.coilactor3)
+        self.ren2.AddActor(self.arrowactorX1)
+        self.ren2.AddActor(self.arrowactorX2)
+
+
+        self.ren2.ResetCamera()
 
         # Render the scene
         self.widget.Render()
@@ -539,7 +644,9 @@ class MyFrame(wx.Frame):
             print ((((float(coord[6]))+float(coord[9]))/2),(((float(coord[7]))+float(coord[10]))/2),(((float(coord[11]))+float(coord[8]))/2))
         if self.OBJ_ID == 2:
             self.ren.RemoveActor(self.arrowactorZ1)
+            self.assembly.RemovePart(self.arrowactorZ1)
             self.ren.RemoveActor(self.arrowactorZ2)
+            self.assembly.RemovePart(self.arrowactorZ2)
             offset = 5
             self.arrowactorZ1 = c.arrow([-55, -35, offset], [-55, -35, offset + coord])
             self.arrowactorZ1.RotateX(-60)
@@ -552,10 +659,14 @@ class MyFrame(wx.Frame):
             self.arrowactorZ2.RotateX(-60)
             self.arrowactorZ2.RotateZ(180)
             self.ren.AddActor(self.arrowactorZ1)
+            self.assembly.AddPart(self.arrowactorZ1)
             self.ren.AddActor(self.arrowactorZ2)
+            self.assembly.AddPart(self.arrowactorZ2)
 
             self.ren.RemoveActor(self.arrowactorY1)
+            self.assembly.RemovePart(self.arrowactorY1)
             self.ren.RemoveActor(self.arrowactorY2)
+            self.assembly.RemovePart(self.arrowactorY2)
             offset = -35
             self.arrowactorY1 = c.arrow([-55, offset, 0], [-55, offset + coord, 0])
             self.arrowactorY2 = c.arrow([55, offset, 0], [55, offset - coord, 0])
@@ -566,10 +677,14 @@ class MyFrame(wx.Frame):
             self.arrowactorY2.RotateZ(180)
             self.arrowactorY2.GetProperty().SetColor(0, 1, 0)
             self.ren.AddActor(self.arrowactorY1)
+            self.assembly.AddPart(self.arrowactorY1)
             self.ren.AddActor(self.arrowactorY2)
+            self.assembly.AddPart(self.arrowactorY2)
 
             self.ren.RemoveActor(self.arrowactorX1)
+            self.assembly.RemovePart(self.arrowactorX1)
             self.ren.RemoveActor(self.arrowactorX2)
+            self.assembly.RemovePart(self.arrowactorX2)
             offset = 38
             self.arrowactorX1 = c.arrow([0, 65, offset], [0, 65, offset + coord])
             offset = 5
@@ -583,7 +698,9 @@ class MyFrame(wx.Frame):
             self.arrowactorX2.RotateZ(180)
             self.arrowactorX2.GetProperty().SetColor(1, 0, 0)
             self.ren.AddActor(self.arrowactorX1)
+            self.assembly.AddPart(self.arrowactorX1)
             self.ren.AddActor(self.arrowactorX2)
+            self.assembly.AddPart(self.arrowactorX2)
         self.widget.Render()
         #self.ren.ResetCamera()
 
