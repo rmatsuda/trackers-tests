@@ -1,4 +1,4 @@
-ERROR: In C:\Sources\VTK-6.3.0\VTK-6.3.0\Interaction\Widgets\vtkOrientationMarkerWidget.cxx, line 123
-vtkOrientationMarkerWidget (00000000069C0770): The interactor must be set prior to enabling/disabling widget
+ERROR: In C:\Sources\VTK-6.3.0\VTK-6.3.0\Filters\General\vtkTransformPolyDataFilter.cxx, line 73
+vtkTransformPolyDataFilter (000000000E9543A0): No transform defined!
 
 

@@ -21,7 +21,7 @@ class nav(threading.Thread):
         self.tracker_init.Close()
 
     def run(self):
-        inch2mm = 25.4
+        cm2mm = 10.0
         x = 10.0
         y = 10.0
         z = -10.0
@@ -34,8 +34,8 @@ class nav(threading.Thread):
                 coord = (plh.PositionTooltipX1, plh.PositionTooltipY1, plh.PositionTooltipZ1,
                          plh.AngleX1, plh.AngleY1, plh.AngleZ1)
 
-                coord = (float(coord[0]) * inch2mm, float(coord[1]) * inch2mm,
-                         float(coord[2]) * (-inch2mm), float(coord[3]),
+                coord = (float(coord[0]) * cm2mm, float(coord[1]) * cm2mm,
+                         float(coord[2]) * (-cm2mm), float(coord[3]),
                          float(coord[4]), float(coord[5]))
                 wx.CallAfter(Publisher.sendMessage, 'Update Orientation', coord)
             elif self.tck == "mtc":
