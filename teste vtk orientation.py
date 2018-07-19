@@ -11,6 +11,7 @@ import create as c
 import random
 from numpy.core.umath_tests import inner1d
 
+import transformations as tr
 import trackers
 import coord
 
@@ -140,7 +141,7 @@ class MyFrame(wx.Frame):
         self.ren.AddActor(self.arrow)
 
         self.ball_referenceP = vtk.vtkSphereSource()
-        self.ball_referenceP.SetRadius(3)
+        self.ball_referenceP.SetRadius(1)
         mapper = vtk.vtkPolyDataMapper()
         mapper.SetInputConnection(self.ball_referenceP.GetOutputPort())
         p = vtk.vtkProperty()
@@ -148,7 +149,26 @@ class MyFrame(wx.Frame):
         self.ball_actorP = vtk.vtkActor()
         self.ball_actorP.SetMapper(mapper)
         self.ball_actorP.SetProperty(p)
+        self.ball_actorP.SetPosition(10,10,10)
         self.ren.AddActor(self.ball_actorP)
+
+        textSource = vtk.vtkVectorText()
+        textSource.SetText("Hello")
+        #textSource.Update()
+
+        # Create a mapper and actor
+        mapper = vtk.vtkPolyDataMapper()
+        mapper.SetInputConnection(textSource.GetOutputPort())
+
+        tactor = vtk.vtkFollower()
+        tactor.SetMapper(mapper)
+        tactor.GetProperty().SetColor(1.0, 0.0, 0.0)
+        tactor.SetScale(2)
+        ball_position = self.ball_actorP.GetPosition()
+        tactor.SetPosition(ball_position[0]+1, ball_position[1]+1, ball_position[2]+1)
+        #tactor.SetPosition(self.ball_actorP.GetPosition())
+        self.ren.AddActor(tactor)
+        tactor.SetCamera(self.ren.GetActiveCamera())
 
         # filename = "C://Users//renan//Google Drive//Lab//Material suporte//Imagens Teste//0051//CT 0051 - InVesalius Sample.stl"
         # reader = vtk.vtkSTLReader()
@@ -158,8 +178,41 @@ class MyFrame(wx.Frame):
         # actor = vtk.vtkActor()
         # actor.SetMapper(mapper)
         # self.ren.AddActor(actor)
-
+        cam =self.ren.GetActiveCamera()
         self.ren.ResetCamera()
+
+
+        # cam.SetViewUp(1, 0,0)
+
+        a, b, g = np.radians([0., 0., 90.])
+        r_ref = np.asmatrix(tr.euler_matrix(a, b, g, 'sxyz'))
+        t_ref = tr.translation_matrix((0,0,0,1))
+        m_img = np.asmatrix(tr.concatenate_matrices(t_ref, r_ref))
+
+        m_img_vtk = vtk.vtkMatrix4x4()
+
+        for row in range(0, 4):
+            for col in range(0, 4):
+                m_img_vtk.SetElement(row, col, r_ref[row, col])
+        viewup_aim = m_img * np.asmatrix([0., 1., 0., 1.]).T
+        print viewup_aim
+
+        # self.arrow.RotateZ(90)
+        # self.arrow.SetUserMatrix(m_img_vtk)
+        # m_cam = self.arrow.GetUserMatrix()
+        # cam.SetRoll(-90)
+
+
+        # r_ref_inv = r_ref.I
+
+        m_img_vtk_inv = vtk.vtkMatrix4x4()
+
+        for row in range(0, 4):
+            for col in range(0, 4):
+                m_img_vtk_inv.SetElement(row, col, r_ref.I[row, col])
+
+
+        cam.SetModelTransformMatrix(m_img_vtk_inv)
 
         # Render the scene
         self.widget.Render()
